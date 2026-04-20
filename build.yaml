@@ -14,7 +14,7 @@
 ---
 include:
   # dongle_display is disabled: ZMK_SPLIT_BLE_PERIPHERAL_COUNT removed in recent ZMK main
-  - board: nice_nano/nrf52840
+  - board: nice_nano//zmk
     shield: cornix_dongle_adapter cornix_dongle_eyelash
     snippet: studio-rpc-usb-uart nrf52840-nosd
     artifact-name: cornix_dongle_nosd
@@ -44,7 +44,7 @@ include:
     snippet: studio-rpc-usb-uart nrf52840-nosd
     artifact-name: cornix_reset
 
-  - board: nice_nano/nrf52840
+  - board: nice_nano//zmk
     shield: settings_reset
     snippet: studio-rpc-usb-uart nrf52840-nosd
     artifact-name: reset_nicenano_nosd
