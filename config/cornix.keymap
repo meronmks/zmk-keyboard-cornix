@@ -40,6 +40,66 @@
             tapping-term-ms = <TAPPING_TERM>;
             quick-tap-ms = <QUICK_TAP>;
         };
+
+        // JIS数字行: US/JISでShiftバリアントが異なるキーをmod-morphで補正
+        jis_n2: jis_n2 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N2>, <&kp JA_DQT>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_n6: jis_n6 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N6>, <&kp JA_AMPR>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_n7: jis_n7 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N7>, <&kp JA_QUOT>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_n8: jis_n8 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N8>, <&kp JA_LPRN>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_n9: jis_n9 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N9>, <&kp JA_RPRN>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+        // JA_GRV(バッククォート)はLS(LBKT)なので、Shift+JA_GRVがLS(LS(LBKT))=LS(LBKT)になる問題をmod-morphで解消
+        jis_grv: jis_grv {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp JA_GRV>, <&kp JA_TILD>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+        // JIS記号行: Shiftバリアントを明示定義
+        jis_semi: jis_semi {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp SEMI>, <&kp JA_PLUS>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_minus: jis_minus {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp MINUS>, <&kp JA_EQL>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_coln: jis_coln {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp JA_COLN>, <&kp JA_ASTR>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
     };
 
     conditional_layers {
@@ -199,8 +259,8 @@
         jis_sym_layer {
             display-name = "JIS Lower";
             bindings = <
-&kp ESC   &kp N1  &kp N2      &kp N3  &kp N4    &kp N5                      &kp N6      &kp N7       &kp N8       &kp N9       &kp N0   &trans
-&tog 9    &none   &kp JA_GRV  &none   &kp SEMI  &kp MINUS                   &kp JA_EQL  &kp JA_QUOT  &kp JA_LBRC  &kp JA_RBRC  &trans   &trans
+&kp ESC   &kp N1   &jis_n2    &kp N3  &kp N4    &kp N5                      &jis_n6     &jis_n7      &jis_n8      &jis_n9      &kp N0   &trans
+&tog 9    &none    &jis_grv   &none   &jis_semi  &jis_minus                 &kp JA_EQL  &jis_coln    &kp JA_LBRC  &kp JA_RBRC  &trans   &trans
 &trans    &none   &none       &none   &none     &none       &trans  &trans  &none       &none        &trans       &trans       &none    &trans
 &trans    &trans  &trans      &trans  &trans    &trans                       &trans      &trans       &trans       &none        &none    &kp INT1
             >;
