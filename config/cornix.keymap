@@ -41,65 +41,87 @@
             quick-tap-ms = <QUICK_TAP>;
         };
 
-        // JIS数字行: US/JISでShiftバリアントが異なるキーをmod-morphで補正
+        // ── JISモード用 mod-morph ──────────────────────────────────────────────
+        // ZMKはUS HIDコードを送るが、OSがJIS配列設定のためズレが生じる。
+        // 各 mod-morph は「US記号」をJIS OSで正しく出力するためのコードに変換する。
+        // 例: Shift+2(US @)→ mod-morphがJA_AT(LBKT)を送る → JIS OSが@と解釈する
+
+        // 数字行: Shift+数字でUS/JIS間でズレる6キー
         jis_n2: jis_n2 {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp N2>, <&kp JA_DQT>;
+            bindings = <&kp N2>, <&kp JA_AT>;    // 2 / @(=LBKT)
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
         jis_n6: jis_n6 {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp N6>, <&kp JA_AMPR>;
+            bindings = <&kp N6>, <&kp JA_CIRC>;  // 6 / ^(=EQUAL)
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
         jis_n7: jis_n7 {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp N7>, <&kp JA_QUOT>;
+            bindings = <&kp N7>, <&kp JA_AMPR>;  // 7 / &(=LS(N6))
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
         jis_n8: jis_n8 {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp N8>, <&kp JA_LPRN>;
+            bindings = <&kp N8>, <&kp JA_ASTR>;  // 8 / *(=LS(SQT))
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
         jis_n9: jis_n9 {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp N9>, <&kp JA_RPRN>;
+            bindings = <&kp N9>, <&kp JA_LPRN>;  // 9 / ((=LS(N8))
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        jis_n0: jis_n0 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N0>, <&kp JA_RPRN>;  // 0 / )(=LS(N9))
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
 
-        // JA_GRV(バッククォート)はLS(LBKT)なので、Shift+JA_GRVがLS(LS(LBKT))=LS(LBKT)になる問題をmod-morphで解消
+        // 記号行: 単体キーもShiftバリアントもJIS変換が必要なキー
+        // GRAVE: US` → JA_GRV(LS(LBKT)), US~ → JA_TILD(LS(EQUAL))
         jis_grv: jis_grv {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
             bindings = <&kp JA_GRV>, <&kp JA_TILD>;
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
-
-        // JIS記号行: Shiftバリアントを明示定義
+        // SEMI: US; はそのまま, US: → JA_COLN(SQT)
         jis_semi: jis_semi {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp SEMI>, <&kp JA_PLUS>;
+            bindings = <&kp SEMI>, <&kp JA_COLN>;
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
-        jis_minus: jis_minus {
+        // MINUS: US- はそのまま, US_ → JA_UNDS(LS(INT1))
+        jis_mins: jis_mins {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp MINUS>, <&kp JA_EQL>;
+            bindings = <&kp MINUS>, <&kp JA_UNDS>;
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
-        jis_coln: jis_coln {
+        // EQUAL: US= → JA_EQL(LS(MINUS)), US+ → JA_PLUS(LS(SEMI))
+        jis_equal: jis_equal {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp JA_COLN>, <&kp JA_ASTR>;
+            bindings = <&kp JA_EQL>, <&kp JA_PLUS>;
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
+        // SQT: US' → JA_QUOT(LS(N7)), US" → JA_DQT(LS(N2))
+        jis_sqt: jis_sqt {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp JA_QUOT>, <&kp JA_DQT>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        // LBKT/RBKT はmod-morph不要: JA_LBRC(RBKT)にShiftを加えると
+        // 自動的にLS(RBKT)=JA_LCBR({)になり、JA_RBRC(BSLH)→LS(BSLH)=JA_RCBR(})も同様
     };
 
     conditional_layers {
@@ -254,15 +276,15 @@
         };
 
         // ── Layer 8: JIS Lower ───────────────────────────────────────────────
-        // LOWER の JIS 版。構造は LOWER と同一、記号のみ JA_* マクロで正しく送出。
-        // CAPS 位置（左端 home row）に &tog JIS_MODE: LH1 長押し中に押すと JIS 解除。
+        // LOWER の JIS 版。ZMKのUSキーコードをJIS配列OS向けに変換して送出。
+        // LOWERと全く同じキー位置で、US記号が正しく出力されるよう変換済み。
         jis_sym_layer {
             display-name = "JIS Lower";
             bindings = <
-&kp ESC   &kp N1   &jis_n2    &kp N3  &kp N4    &kp N5                      &jis_n6     &jis_n7      &jis_n8      &jis_n9      &kp N0   &trans
-&tog 9    &none    &jis_grv   &none   &jis_semi  &jis_minus                 &kp JA_EQL  &jis_coln    &kp JA_LBRC  &kp JA_RBRC  &trans   &trans
-&trans    &none   &none       &none   &none     &none       &trans  &trans  &none       &none        &trans       &trans       &none    &trans
-&trans    &trans  &trans      &trans  &trans    &trans                       &trans      &trans       &trans       &none        &none    &kp INT1
+&kp ESC  &kp N1   &jis_n2   &kp N3  &kp N4     &kp N5                      &jis_n6      &jis_n7      &jis_n8      &jis_n9      &jis_n0      &trans
+&tog 9   &none    &jis_grv  &none   &jis_semi  &jis_mins                   &jis_equal   &jis_sqt     &kp JA_LBRC  &kp JA_RBRC  &trans       &trans
+&trans   &none    &none     &none   &none      &none       &trans  &trans  &none        &none        &trans       &trans       &none        &trans
+&trans   &trans   &trans    &trans  &trans     &trans                       &trans       &trans       &trans       &none        &none        &kp INT1
             >;
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
         };
