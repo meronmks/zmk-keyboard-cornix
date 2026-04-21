@@ -56,6 +56,13 @@
     combos {
         compatible = "zmk,combos";
 
+        // LH1 + RH1 同時押しで JIS モード on/off
+        jis_toggle {
+            bindings = <&tog JIS_MODE>;
+            key-positions = <LH1 RH1>;
+            timeout-ms = <50>;
+        };
+
         cb_esc {
             bindings = <&kp ESC>;
             key-positions = <2 4>;
