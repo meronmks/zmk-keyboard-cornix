@@ -56,10 +56,10 @@
     combos {
         compatible = "zmk,combos";
 
-        // LH1 + RH1 同時押しで JIS モード on/off
+        // LH2 + LH1 同時押しで JIS モード on/off（同一ハーフ = cross-half 遅延なし）
         jis_toggle {
             bindings = <&tog JIS_MODE>;
-            key-positions = <LH1 RH1>;
+            key-positions = <LH2 LH1>;
             timeout-ms = <50>;
         };
 
