@@ -122,6 +122,15 @@
         };
         // LBKT/RBKT はmod-morph不要: JA_LBRC(RBKT)にShiftを加えると
         // 自動的にLS(RBKT)=JA_LCBR({)になり、JA_RBRC(BSLH)→LS(BSLH)=JA_RCBR(})も同様
+
+        // Base層のBSLH(US\|): JIS OSでBSLH=]、LS(BSLH)=} になるためJIS変換が必要
+        // US\→JA_YEN(INT3=¥), US|→JA_PIPE(LS(INT3)=|)
+        jis_yen: jis_yen {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp JA_YEN>, <&kp JA_PIPE>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
     };
 
     conditional_layers {
@@ -297,7 +306,7 @@
             display-name = "JIS";
             bindings = <
 &trans  &trans  &trans  &trans  &trans               &trans                  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans               &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans               &trans                  &trans  &trans  &trans  &trans  &jis_yen  &trans
 &trans  &trans  &trans  &trans  &trans               &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &lt JIS_SYM LANG2    &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
