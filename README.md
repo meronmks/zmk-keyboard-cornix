@@ -1,5 +1,9 @@
 # ZMK Keyboard for Cornix
 
+> [!TIP]
+> 現在のキーマップ、JISモード、RGB、ビルド構成の日本語仕様書は
+> [docs/SPECIFICATION_JP.md](./docs/SPECIFICATION_JP.md) を参照してください。
+
 ## Introduction to Boards and Shields
 
 This repository contains the ZMK firmware configuration for the Cornix split keyboard. Below is an explanation of the different boards and shields available in this project:
@@ -43,21 +47,24 @@ you have two solutions
 
 ## TODO LIST
 
-- [x] 52 keys full layout keymap, since v2.0
+- [x] Active 50-key `LAYOUT_50` keymap (legacy notes called it 52 keys), since v2.0
 - [x] ec11 encoder, since v2.2
 - [x] no-SD image, since v2.3
 - [x] support various of dongles
 - [x] upgrade to zephyr4.1 and lvgl9 , since v2.7, no dongle screen support yet
-- [ ] rgb since in future v3
+- [x] RGB battery and connection indicators via `cornix_indicator`, since v3
 
 
 ### about RGB
 
-Cornix shield has 2 RGB LEDs on each side, controled by PWM in the stock firmware.
+Cornix has 2 WS2812 RGB LEDs on each side. The `cornix_indicator` shield uses
+the updated `zmk-rgbled-widget` module to reproduce the stock firmware's main
+indicator roles: LED 0 shows battery status and LED 1 shows connection status.
+The module's additional Caps Lock and layer indicators are disabled initially.
 
-The replacement solution is adapting the RGB indicator module to light up these RGBs, to achieve the same effect as the stock firmware, which uses the RGB LEDs to indicate battery status and connection status.
-
-But it is not supported yet in this repository.  PR is welcome!
+To reduce standby consumption, the WS2812 power rail turns off 1000 ms after
+all indicator animations finish. Illuminated LEDs still consume additional
+power.
 
 ## Supported Hardware: Cornix Split Keyboard
 
@@ -218,20 +225,20 @@ include:
     snippet: studio-rpc-usb-uart
     artifact-name: cornix_dongle
 
-  - board: cornix_ph_left
-    # shield: cornix_indicator
+  - board: cornix_ph_left//zmk
+    shield: cornix_indicator
     artifact-name: cornix_left_for_dongle
 
   # Use cornix without dongle
-  - board: cornix_left
-    # shield: cornix_indicator
+  - board: cornix_left//zmk
+    shield: cornix_indicator
     artifact-name: cornix_left
 
-  - board: cornix_right
-    # shield: cornix_indicator
+  - board: cornix_right//zmk
+    shield: cornix_indicator
     artifact-name: cornix_right
 
-  - board: cornix_right
+  - board: cornix_right//zmk
     shield: settings_reset
     artifact-name: reset
 ```

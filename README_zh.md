@@ -40,20 +40,21 @@
 
 ## TODO 列表
 
-- [x] 52 键完整布局键位图，自 v2.0
+- [x] 当前使用 50 键 `LAYOUT_50` 键位图（旧说明曾称为 52 键），自 v2.0
 - [x] ec11 编码器，自 v2.2
 - [x] 无 SD 镜像，自 v2.3
 - [x] 支持各种适配器
 - [x] 升级到 zephyr4.1 和 lvgl9，自 v2.7，暂不支持适配器屏幕
-- [ ] RGB，将在未来 v3 中支持
+- [x] 通过 `cornix_indicator` 支持 RGB 电量与连接状态指示，自 v3
 
 ### 关于 RGB
 
-Cornix 扩展板每侧有 2 个 RGB LED，由 PWM 在原始固件中控制。
+Cornix 每侧有 2 个 WS2812 RGB LED。`cornix_indicator` 使用更新后的
+`zmk-rgbled-widget`：LED 0 显示电池状态，LED 1 显示连接状态，与原始固件的
+主要指示用途一致。模块附加的 Caps Lock 和层指示功能默认关闭。
 
-替代解决方案是采用 RGB 指示模块来点亮这些 RGB，以实现与原始固件相同的效果，原始固件使用 RGB LED 来指示电池状态和连接状态。
-
-但此功能尚未在此仓库中支持。欢迎提交 PR！
+所有指示动画结束 1000 ms 后，WS2812 电源会自动关闭以降低待机功耗；
+LED 点亮期间仍会增加耗电。
 
 ## 支持的硬件：Cornix 分体式键盘
 
@@ -213,20 +214,20 @@ include:
     snippet: studio-rpc-usb-uart
     artifact-name: cornix_dongle
 
-  - board: cornix_ph_left
-    # shield: cornix_indicator
+  - board: cornix_ph_left//zmk
+    shield: cornix_indicator
     artifact-name: cornix_left_for_dongle
 
   # 使用不带适配器的 cornix
-  - board: cornix_left
-    # shield: cornix_indicator
+  - board: cornix_left//zmk
+    shield: cornix_indicator
     artifact-name: cornix_left
 
-  - board: cornix_right
-    # shield: cornix_indicator
+  - board: cornix_right//zmk
+    shield: cornix_indicator
     artifact-name: cornix_right
 
-  - board: cornix_right
+  - board: cornix_right//zmk
     shield: settings_reset
     artifact-name: reset
 ```
