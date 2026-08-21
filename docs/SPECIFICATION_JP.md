@@ -229,6 +229,16 @@ profile 3と4の選択・切断はAdjustレイヤーから行います。
 `BT_CLR` / `BT_CLR_ALL` 後はホスト側でもCornixのBluetooth登録を削除し、再ペアリングしてください。
 これらのキーは左右split間のbondを削除するものではありません。
 
+### bond削除後の再ペアリング
+
+1. PC・スマートフォン側のBluetooth設定で、以前のCornix登録を「削除」または「このデバイスを削除」する。
+2. `英数/Lower`と`かな/Mouse`を同時にホールドし、`Q`〜`T`で再利用するprofile 0〜4を選ぶ。
+3. そのprofileをまだkeyboard側で削除していなければ、`かな/Mouse`をホールドしながら`TAB`を押して`BT_CLR`する。
+4. 選択した空profileでadvertisingが始まるので、ホスト側のBluetooth追加画面からCornixを選ぶ。
+
+すでに`BT_CLR`済みなら手順3は不要です。`BT_DISC 0`〜`BT_DISC 4`は接続を一時的に切るだけで、
+bondは削除しません。同じホストへ戻すだけなら、対応profileを再選択すれば再接続できます。
+
 ## 10. FNレイヤー
 
 ```text
@@ -261,13 +271,14 @@ LCTRL  LALT  LGUI   ▽    ▽    ▽   | RSHFT  RCTRL  RALT    ←    ↓    �
 | 項目 | 設定 |
 |---|---|
 | LED | 各halfにWS2812を2個 |
-| LED 0 | 電池状態 |
+| LED 0 | 電源ON中はローカル電池残量色で常時点灯 |
 | LED 1 | 接続状態 |
-| 明るさ | 64 / 255（約25%） |
+| 明るさ | 16 / 255（約6%・2灯共通） |
 | spatial mapping | 有効 |
 | Caps Lock表示 | 無効 |
 | layer表示 | 無効 |
-| idle時の外部電源OFF | indicatorが消えてから1000 ms |
+| BT未接続表示 | 接続完了までLED 1を選択profile色でpulse / 点滅 |
+| idle時の外部電源OFF | 全LED消灯後1000 ms。通常はLED 0常時点灯のため作動しない |
 
 狙いはCornix純正ファームウェアと同じく「電池」と「接続」を2灯の主用途にすることです。
 RMK純正ファームウェアのアニメーションを完全に同一のタイミングで再現する、という意味ではありません。
@@ -280,27 +291,39 @@ RMK純正ファームウェアのアニメーションを完全に同一のタ�
 
 | 状態 | 目安となる表示 |
 |---|---|
-| 80%より上 | 緑 |
-| 20〜80% | 黄 |
-| 20%未満 | 赤点滅 |
-| 5%未満 | 赤の高速点滅 |
-| 充電中 | 緑のpulse |
-| peripheral不明・切断 | magenta |
+| 80%以上 | 緑で常時点灯 |
+| 20〜79% | 黄で常時点灯 |
+| 6〜19% | 赤で常時点灯 |
+| 5%以下 | 赤の警告pulse / 点滅（終了後も赤） |
+| 充電中（99%未満） | 緑のpulse |
+| USB給電中かつ99%以上 | 緑で常時点灯 |
+| ローカル電池残量を取得できない | magenta |
+
+各halfは自分自身の電池残量をLED 0へ表示します。通常の電池色は起動時のindicator表示が
+終わった後も消えず、電源が入っていることを確認するための低輝度ランプを兼ねます。
+充電中と危険残量（5%以下）では、常時点灯より外部widgetの警告animationを優先します。
+
+> [!IMPORTANT]
+> 現在の `zmk-rgbled-widget` はLEDごとの明るさを持たず、2灯で1つの明るさ設定を共有します。
+> このためLED 0だけでなくLED 1も16 / 255です。また、LED 0を常時点灯する仕様上、従来の
+> 「全indicator消灯後にRGB電源を切る」省電力動作は通常時には発生せず、電池消費は増えます。
 
 #### LED 1: 接続
 
 | 状態 | 目安となる表示 |
 |---|---|
 | BT profile 0 / 1 / 2 / 3 / 4 | 緑 / 赤 / 青 / 黄 / magenta |
-| advertising | 黄のpulse |
-| 接続切断 | 赤点滅 |
+| profile切り替え後・未pairing | 選択profile色でpulse。接続完了まで継続 |
+| profile切り替え後・bond済みだが未接続 | 選択profile色で点滅。接続完了まで継続 |
+| 接続完了 | 選択profile色のstatic表示へ切り替わり、点滅終了 |
+| 接続切断 | 選択profile色で点滅。再接続まで継続 |
 | split peripheral接続 | 青 |
-| split peripheral切断 | 赤点滅 |
+| split peripheral切断 | 赤点滅。再接続まで継続 |
 
 > [!NOTE]
 > `config/west.yml` は `zmk-rgbled-widget` の `main` を参照しており、commitを固定していません。
 > module更新によって色やanimationの既定値が変わる可能性があります。
-> LED番号、明るさ、Caps Lock無効、電源OFF時間はこのリポジトリ側で明示しています。
+> LED番号、明るさ、LED 0の常時点灯、Caps Lock無効、電源OFF時間はこのリポジトリ側で明示しています。
 
 ### RGB配線
 
@@ -309,8 +332,8 @@ RMK純正ファームウェアのアニメーションを完全に同一のタ�
 | 左 | P0.13 | P0.24 / SPI3 MOSI |
 | 右 | P0.24 | P0.13 / SPI3 MOSI |
 
-indicatorが消灯してもRGB電源がすぐ切れない場合、1000 msのidle timeout内である可能性があります。
-何らかのstatic indicatorが点灯中なら、timeoutでは電源を切りません。
+全LEDが消灯してもRGB電源がすぐ切れない場合、1000 msのidle timeout内である可能性があります。
+通常はLED 0がstatic indicatorとして点灯中なので、timeoutではRGB電源を切りません。
 
 ## 13. ビルド成果物とflash対象
 

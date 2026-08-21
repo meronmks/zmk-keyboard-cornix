@@ -62,9 +62,12 @@ the updated `zmk-rgbled-widget` module to reproduce the stock firmware's main
 indicator roles: LED 0 shows battery status and LED 1 shows connection status.
 The module's additional Caps Lock and layer indicators are disabled initially.
 
-To reduce standby consumption, the WS2812 power rail turns off 1000 ms after
-all indicator animations finish. Illuminated LEDs still consume additional
-power.
+LED 0 remains dimly lit with the local battery-level color so that each half's
+power state is visible. Charging and critical-battery animations still take
+priority. The widget currently has one shared brightness setting, so LED 1 also
+uses the same low brightness. When switching Bluetooth profiles, LED 1 pulses
+or blinks in the selected profile's color until the connection completes. A
+continuously illuminated LED increases battery consumption.
 
 ## Supported Hardware: Cornix Split Keyboard
 

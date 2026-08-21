@@ -1,0 +1,17 @@
+config CORNIX_PERSISTENT_BATTERY_INDICATOR
+    bool "Keep Cornix LED 0 lit with the local battery color"
+    depends on RGBLED_WIDGET_WS2812 && ZMK_BATTERY_REPORTING
+    default n
+    help
+      Keep the battery status on LED 0 after the RGB widget's startup
+      animation. Charging and critical-battery animations remain controlled
+      by zmk-rgbled-widget.
+
+config CORNIX_PERSISTENT_BATTERY_STARTUP_DELAY_MS
+    int "Delay before enabling the persistent battery indicator"
+    depends on CORNIX_PERSISTENT_BATTERY_INDICATOR
+    range 2500 10000
+    default 3500
+    help
+      Wait for zmk-rgbled-widget's startup battery and connection indications
+      to finish before restoring the persistent battery color.
