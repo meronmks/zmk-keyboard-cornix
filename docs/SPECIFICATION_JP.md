@@ -278,7 +278,9 @@ LCTRL  LALT  LGUI   ▽    ▽    ▽   | RSHFT  RCTRL  RALT    ←    ↓    �
 | Caps Lock表示 | 無効 |
 | layer表示 | 無効 |
 | BT未接続表示 | 接続完了までLED 1を選択profile色でpulse / 点滅 |
-| idle時の外部電源OFF | 全LED消灯後1000 ms。通常はLED 0常時点灯のため作動しない |
+| 通常idle（30秒） | widgetの全消灯処理後、LED 0を電池色で再点灯 |
+| deep sleep | LED 0を復元せずRGB電源OFFを許可 |
+| 外部電源OFF | 全LED消灯後1000 ms。LED 0常時点灯中は作動しない |
 
 狙いはCornix純正ファームウェアと同じく「電池」と「接続」を2灯の主用途にすることです。
 RMK純正ファームウェアのアニメーションを完全に同一のタイミングで再現する、という意味ではありません。
@@ -301,7 +303,9 @@ RMK純正ファームウェアのアニメーションを完全に同一のタ�
 
 各halfは自分自身の電池残量をLED 0へ表示します。通常の電池色は起動時のindicator表示が
 終わった後も消えず、電源が入っていることを確認するための低輝度ランプを兼ねます。
-充電中と危険残量（5%以下）では、常時点灯より外部widgetの警告animationを優先します。
+充電中と危険残量（5%以下）では、通常動作中は常時点灯より外部widgetの警告animationを
+優先します。30秒無操作で通常idleへ入るとwidgetが全LEDを消灯するため、その処理後に
+LED 0だけを静的な電池残量色で再設定します。deep sleepでは復元せず消灯します。
 
 > [!IMPORTANT]
 > 現在の `zmk-rgbled-widget` はLEDごとの明るさを持たず、2灯で1つの明るさ設定を共有します。
@@ -332,8 +336,9 @@ RMK純正ファームウェアのアニメーションを完全に同一のタ�
 | 左 | P0.13 | P0.24 / SPI3 MOSI |
 | 右 | P0.24 | P0.13 / SPI3 MOSI |
 
-全LEDが消灯してもRGB電源がすぐ切れない場合、1000 msのidle timeout内である可能性があります。
-通常はLED 0がstatic indicatorとして点灯中なので、timeoutではRGB電源を切りません。
+全LEDが消灯してもRGB電源がすぐ切れない場合、1000 msの外部電源OFF timeout内である
+可能性があります。通常idleではwidgetによる消灯から約10 ms後にLED 0を再設定するため、
+RGB電源は再投入されます。LED 0がstatic indicatorとして点灯中は外部電源を切りません。
 
 ## 13. ビルド成果物とflash対象
 
