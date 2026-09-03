@@ -2,12 +2,14 @@
  * Keep Cornix LED 0 usable as a dim power-on and battery-level indicator.
  *
  * zmk-rgbled-widget normally returns the battery LED to its idle color after
- * the startup indication. This listener restores a persistent, static battery
- * color whenever the local battery, USB, or activity state changes. This also
- * restores LED 0 after the widget clears every LED on ZMK_ACTIVITY_IDLE. The
- * widget retains control while active and charging or at critical battery
- * level so its pulse/blink warnings continue to work. ZMK_ACTIVITY_SLEEP is
- * intentionally left dark so deep sleep can still power down the RGB rail.
+ * the startup indication. This listener restores the appropriate persistent
+ * battery indication whenever the local battery, USB, or activity state
+ * changes. This also restores LED 0 after ZMK enters ZMK_ACTIVITY_IDLE.
+ * Charging is reapplied as a battery-level-colored blink in both ACTIVE and
+ * IDLE states, while the widget retains control of the critical-battery
+ * warning while active.
+ * ZMK_ACTIVITY_SLEEP is intentionally left dark so deep sleep can still power
+ * down the RGB rail.
  */
 
 #include <zephyr/init.h>
@@ -27,9 +29,11 @@ LOG_MODULE_REGISTER(cornix_persistent_battery, CONFIG_ZMK_LOG_LEVEL);
 
 #define INDICATOR_UPDATE_DELAY_MS 100
 #define INDICATOR_IDLE_RESTORE_DELAY_MS 10
+#define INDICATOR_CHARGING_BLINK_HALF_PERIOD_MS 500
 
 static struct k_work_delayable indicator_update_work;
 static enum zmk_activity_state indicator_activity_state = ZMK_ACTIVITY_ACTIVE;
+static bool charging_blink_on;
 
 static uint8_t battery_color(uint8_t level) {
     if (level == 0) {
@@ -56,14 +60,30 @@ static void update_indicator(struct k_work *work) {
 
     const uint8_t level = zmk_battery_state_of_charge();
 
-    /*
-     * Preserve the widget's charging pulse and critical-battery warning while
-     * active. On IDLE the widget clears all state, so restore a static battery
-     * color instead to keep the power-on indicator visible.
-     */
-    if (indicator_activity_state == ZMK_ACTIVITY_ACTIVE &&
-        ((zmk_usb_is_powered() && level < 99) ||
-         (level > 0 && level <= CONFIG_RGBLED_WIDGET_BATTERY_LEVEL_CRITICAL))) {
+    /* Keep blinking in the current battery-level color after entering IDLE. */
+    if (zmk_usb_is_powered() && level < 99) {
+        charging_blink_on = !charging_blink_on;
+
+        int ret = ws2812_clear_status_led(STATUS_BATTERY);
+        if (ret < 0) {
+            LOG_WRN("Could not update charging animation: %d", ret);
+        } else if (charging_blink_on) {
+            ret = ws2812_set_status_led(STATUS_BATTERY, battery_color(level), 0, true);
+            if (ret < 0) {
+                LOG_WRN("Could not set charging animation color: %d", ret);
+            }
+        }
+
+        k_work_reschedule(&indicator_update_work,
+                          K_MSEC(INDICATOR_CHARGING_BLINK_HALF_PERIOD_MS));
+        return;
+    }
+
+    charging_blink_on = false;
+
+    /* Preserve the widget's critical-battery warning while active. */
+    if (indicator_activity_state == ZMK_ACTIVITY_ACTIVE && level > 0 &&
+        level <= CONFIG_RGBLED_WIDGET_BATTERY_LEVEL_CRITICAL) {
         return;
     }
 
@@ -96,6 +116,7 @@ static int indicator_activity_changed(const zmk_event_t *eh) {
 
     if (event->state == ZMK_ACTIVITY_SLEEP) {
         k_work_cancel_delayable(&indicator_update_work);
+        charging_blink_on = false;
     } else {
         /* Run after zmk-rgbled-widget has handled the same activity event. */
         k_work_reschedule(&indicator_update_work,

@@ -4,9 +4,10 @@ config CORNIX_PERSISTENT_BATTERY_INDICATOR
     default n
     help
       Keep the battery status on LED 0 after the RGB widget's startup
-      animation and while ZMK is idle. Charging and critical-battery
-      animations remain controlled by zmk-rgbled-widget while active. Deep
-      sleep still turns the indicator off.
+      animation and while ZMK is idle. The battery-level-colored charging
+      animation remains active while ZMK is active or idle, and the
+      critical-battery animation remains controlled by zmk-rgbled-widget while
+      active. Deep sleep still turns the indicator off.
 
 config CORNIX_PERSISTENT_BATTERY_STARTUP_DELAY_MS
     int "Delay before enabling the persistent battery indicator"

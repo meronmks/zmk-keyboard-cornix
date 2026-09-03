@@ -64,9 +64,10 @@ The module's additional Caps Lock and layer indicators are disabled initially.
 
 LED 0 remains dimly lit with the local battery-level color so that each half's
 power state is visible, including after ZMK enters its normal 30-second idle
-state. Deep sleep still turns the RGB rail off. Charging and critical-battery
-animations take priority while active; during idle, LED 0 uses the static
-battery-level color. The widget currently has one shared brightness setting,
+state. The charging animation blinks in the current battery-level color and
+remains active during normal idle, while deep sleep still turns the RGB rail
+off. Critical-battery animations take priority while active. The widget
+currently has one shared brightness setting,
 so LED 1 also uses the same low brightness. When switching Bluetooth profiles,
 LED 1 pulses or blinks in the selected profile's color until the connection
 completes. A continuously illuminated LED increases battery consumption.
